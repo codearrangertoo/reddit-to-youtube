@@ -57,7 +57,7 @@ def get_video_data(video_ids)
         )
 
         return videos_list_response.data.items
-        
+
         # Print information about each video.
         videos_list_response.data.items.each do |video_item|
           puts video_item.inspect
@@ -71,7 +71,7 @@ def get_video_data(video_ids)
   rescue Google::APIClient::TransmissionError => e
     puts e.result.body
   end
-  
+
 end
 
 
@@ -107,7 +107,7 @@ def get_playlist_items(uploads_list_id)
   rescue Google::APIClient::TransmissionError => e
     puts e.result.body
   end
-  
+
   return video_ids
 end
 
@@ -118,8 +118,8 @@ def playlist_insert(play_list_id, video_id)
       :snippet => {
         :playlistId => play_list_id,
         :resourceId => {
-        	:kind => 'youtube#video',
-        	:videoId => video_id
+          :kind => 'youtube#video',
+          :videoId => video_id
         }
       }
     }
@@ -135,7 +135,7 @@ def playlist_insert(play_list_id, video_id)
   rescue Google::APIClient::TransmissionError => e
     puts e.result.body
   end
-  
+
 end
 
 def get_reddit_links(sub_reddits)
@@ -149,7 +149,7 @@ def get_reddit_links(sub_reddits)
       feed.items.each do |item|
         page = Mechanize::Page.new nil, nil, item.description, 200, agent
         page.links_with(:href => /^https?:\/\/(youtu\.be|(www\.)?youtube\.com)/).each do |link|
-        	links.push(link.href)
+          links.push(link.href)
         end
       end
     end
@@ -158,13 +158,13 @@ def get_reddit_links(sub_reddits)
   end
 
   links.each do |link|
-	  uri = URI.parse(link)
-	  if uri.host == "youtu.be"
-	    video_ids.push(uri.path[1..-1])
-	  else
-	    vid_id = uri.query.sub(/.*v=([a-zA-Z0-9\-\_]+).*/, '\1')
-	    video_ids.push(vid_id)
-	  end
+    uri = URI.parse(link)
+    if uri.host == "youtu.be"
+      video_ids.push(uri.path[1..-1])
+    else
+      vid_id = uri.query.sub(/.*v=([a-zA-Z0-9\-\_]+).*/, '\1')
+      video_ids.push(vid_id)
+    end
   end
   return video_ids
 end
@@ -179,10 +179,10 @@ reddit_video_ids = reddit_video_ids.uniq
 playlist_video_ids = get_playlist_items('PLWpGgXK-klw8l3UUiKNE-fWzVmy-LEnbb')
 
 reddit_video_ids.each do |video_id|
-	unless playlist_video_ids.include?(video_id)
-	  puts "Adding: #{video_id}"
+  unless playlist_video_ids.include?(video_id)
+    puts "Adding: #{video_id}"
     playlist_insert('PLWpGgXK-klw8l3UUiKNE-fWzVmy-LEnbb', video_id)
-	end
+  end
 end
 
 #reddit_video_data = get_video_data(reddit_video_ids)
