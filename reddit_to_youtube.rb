@@ -13,7 +13,7 @@ require 'mechanize'
 
 # This OAuth 2.0 access scope allows for read-only access to the authenticated
 # user's account, but not other types of account access.
-YOUTUBE_READONLY_SCOPE = 'https://www.googleapis.com/auth/youtube'
+YOUTUBE_SCOPE = 'https://www.googleapis.com/auth/youtube'
 YOUTUBE_API_SERVICE_NAME = 'youtube'
 YOUTUBE_API_VERSION = 'v3'
 
@@ -30,7 +30,7 @@ def get_authenticated_service
     flow = Google::APIClient::InstalledAppFlow.new(
       :client_id => client_secrets.client_id,
       :client_secret => client_secrets.client_secret,
-      :scope => [YOUTUBE_READONLY_SCOPE]
+      :scope => [YOUTUBE_SCOPE]
     )
     client.authorization = flow.authorize(file_storage)
   else
