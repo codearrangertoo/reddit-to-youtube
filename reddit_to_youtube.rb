@@ -11,8 +11,6 @@ require 'rss'
 require 'open-uri'
 require 'mechanize'
 
-# This OAuth 2.0 access scope allows for read-only access to the authenticated
-# user's account, but not other types of account access.
 YOUTUBE_SCOPE = 'https://www.googleapis.com/auth/youtube'
 YOUTUBE_API_SERVICE_NAME = 'youtube'
 YOUTUBE_API_VERSION = 'v3'
@@ -44,7 +42,6 @@ def get_video_data(video_ids)
   client, youtube = get_authenticated_service
 
   begin
-      # Retrieve the list of videos uploaded to the authenticated user's channel.
       next_page_token = ''
       until next_page_token.nil?
         videos_list_response = client.execute!(
@@ -58,7 +55,6 @@ def get_video_data(video_ids)
 
         return videos_list_response.data.items
 
-        # Print information about each video.
         videos_list_response.data.items.each do |video_item|
           puts video_item.inspect
           #title = playlist_item['snippet']['title']
