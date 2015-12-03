@@ -169,9 +169,6 @@ def get_reddit_links(sub_reddits)
   return video_ids
 end
 
-puts get_reddit_links(['funny'])
-exit
-
 reddit_video_ids = get_reddit_links(['videos'])
 #reddit_video_ids.push(get_reddit_links(['funny']))
 reddit_video_ids = reddit_video_ids.uniq
