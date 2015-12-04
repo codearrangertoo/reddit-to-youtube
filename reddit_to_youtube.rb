@@ -15,6 +15,8 @@ YOUTUBE_SCOPE = 'https://www.googleapis.com/auth/youtube'
 YOUTUBE_API_SERVICE_NAME = 'youtube'
 YOUTUBE_API_VERSION = 'v3'
 
+playlist = 'PL65vUm4YoczPlyA7Q5O-5D77t5iLRLQXQ'
+
 def get_authenticated_service
   client = Google::APIClient.new(
     :application_name => $PROGRAM_NAME,
@@ -169,12 +171,12 @@ reddit_video_ids = get_reddit_links(['videos'])
 #reddit_video_ids.push(get_reddit_links(['funny']))
 reddit_video_ids = reddit_video_ids.uniq
 
-playlist_video_ids = get_playlist_items('PLWpGgXK-klw8l3UUiKNE-fWzVmy-LEnbb')
+playlist_video_ids = get_playlist_items(playlist)
 
 reddit_video_ids.each do |video_id|
   unless playlist_video_ids.include?(video_id)
     puts "Adding: #{video_id}"
-    playlist_insert('PLWpGgXK-klw8l3UUiKNE-fWzVmy-LEnbb', video_id)
+    playlist_insert(playlist, video_id)
   end
 end
 
