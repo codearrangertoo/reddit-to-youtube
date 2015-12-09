@@ -7,7 +7,7 @@ require 'google/api_client/client_secrets'
 require 'google/api_client/auth/file_storage'
 require 'google/api_client/auth/installed_app'
 
-require 'rss'
+require 'json'
 require 'open-uri'
 require 'mechanize'
 
@@ -138,18 +138,19 @@ end
 
 def get_reddit_links(sub_reddits)
   agent = Mechanize.new
-  url = "https://www.reddit.com/r/#{sub_reddits.join('+')}.rss?limit=100"
+  url = "https://www.reddit.com/r/#{sub_reddits.join('+')}.json?limit=100"
   links = []
   video_ids = []
+  json = ""
   begin
-    open(url) do |rss|
-      feed = RSS::Parser.parse(rss)
-      feed.items.each do |item|
-        page = Mechanize::Page.new nil, nil, item.description, 200, agent
-        page.links_with(:href => /^https?:\/\/(youtu\.be|(www\.)?youtube\.com)/).each do |link|
-          links.push(link.href)
-        end
-      end
+    open(url) do |feed|
+    	json << feed.read
+    end
+    parsed = JSON.parse(json)
+    parsed['data']['children'].each do |item|
+    	if item['data']['domain'] =~ /(youtube\.com|youtu\.be)/
+    		links.push(item['data']['url'])
+    	end
     end
   rescue OpenURI::HTTPError => e
     puts e.inspect
