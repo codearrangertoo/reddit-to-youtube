@@ -195,8 +195,10 @@ def get_reddit_links(sub_reddits)
     if uri.host == "youtu.be"
       video_ids.push(uri.path[1..-1])
     else
-      vid_id = uri.query.sub(/.*v=([a-zA-Z0-9\-\_]+).*/, '\1')
-      video_ids.push(vid_id)
+      if uri.query
+        vid_id = uri.query.sub(/.*v=([a-zA-Z0-9\-\_]+).*/, '\1')
+        video_ids.push(vid_id)
+      end
     end
   end
   return video_ids
