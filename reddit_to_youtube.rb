@@ -14,8 +14,6 @@ YOUTUBE_SCOPE = 'https://www.googleapis.com/auth/youtube'
 YOUTUBE_API_SERVICE_NAME = 'youtube'
 YOUTUBE_API_VERSION = 'v3'
 
-playlist = 'PL65vUm4YoczPlyA7Q5O-5D77t5iLRLQXQ'
-
 def get_authenticated_service
   client = Google::APIClient.new(
     :application_name => $PROGRAM_NAME,
@@ -69,6 +67,44 @@ def get_video_data(video_ids)
     puts e.result.body
   end
 
+end
+
+def get_playlists()
+  client, youtube = get_authenticated_service
+
+  playlists = []
+
+  begin
+      # Retrieve the list of videos uploaded to the authenticated user's channel.
+      next_page_token = ''
+      until next_page_token.nil?
+        playlists_response = client.execute!(
+          :api_method => youtube.playlists.list,
+          :parameters => {
+            :mine => true,
+            :part => 'snippet',
+            :maxResults => 50,
+            :pageToken => next_page_token
+          }
+        )
+
+
+        ## Print information about each video.
+        playlists_response.data.items.each do |playlist|
+          data = {}
+          data['title'] = playlist['snippet']['title']
+          data['id'] = playlist['id']
+          playlists.push(data)
+        end
+
+        next_page_token = playlists_response.next_page_token
+
+    end
+  rescue Google::APIClient::TransmissionError => e
+    puts e.result.body
+  end
+
+  return playlists
 end
 
 
@@ -142,13 +178,13 @@ def get_reddit_links(sub_reddits)
   json = ""
   begin
     open(url) do |feed|
-    	json << feed.read
+      json << feed.read
     end
     parsed = JSON.parse(json)
     parsed['data']['children'].each do |item|
-    	if item['data']['domain'] =~ /(youtube\.com|youtu\.be)/
-    		links.push(item['data']['url'])
-    	end
+      if item['data']['domain'] =~ /(youtube\.com|youtu\.be)/
+        links.push(item['data']['url'])
+      end
     end
   rescue OpenURI::HTTPError => e
     puts e.inspect
@@ -159,18 +195,59 @@ def get_reddit_links(sub_reddits)
     if uri.host == "youtu.be"
       video_ids.push(uri.path[1..-1])
     else
-      if uri.query
-        vid_id = uri.query.sub(/.*v=([a-zA-Z0-9\-\_]+).*/, '\1')
-        video_ids.push(vid_id)
-      end
+      vid_id = uri.query.sub(/.*v=([a-zA-Z0-9\-\_]+).*/, '\1')
+      video_ids.push(vid_id)
     end
   end
   return video_ids
 end
 
+def new_playlist(title)
+  client, youtube = get_authenticated_service
+
+    body = {
+      :snippet => {
+        :title => title,
+        :resourceId => {
+          :kind => 'youtube#playlist'
+        }
+      },
+      :status => {
+        :privacyStatus => 'public'
+      }
+    }
+
+  begin
+        playlistsinsert_response = client.execute!(
+          :api_method => youtube.playlists.insert,
+          :body_object => body,
+          :parameters => {
+            :part => 'snippet,status'
+          }
+        )
+        return playlistsinsert_response.data['id']
+  rescue Google::APIClient::TransmissionError => e
+    puts e.result.body
+  end
+
+end
+
+def get_current_pl
+  date=DateTime.now.strftime('%Y-%m-%d')
+  playlist_title="/r/videos@#{date}"
+  if pl=get_playlists.find {|p| p['title'] == playlist_title }
+    return pl['id']
+  else
+    return new_playlist(playlist_title)
+  end
+
+end
+
 reddit_video_ids = get_reddit_links(['videos'])
 #reddit_video_ids.push(get_reddit_links(['funny']))
 reddit_video_ids = reddit_video_ids.uniq
+
+playlist=get_current_pl()
 
 playlist_video_ids = get_playlist_items(playlist)
 
