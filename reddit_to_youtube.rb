@@ -9,6 +9,7 @@ require 'google/api_client/auth/installed_app'
 
 require 'json'
 require 'open-uri'
+require 'pp'
 
 YOUTUBE_SCOPE = 'https://www.googleapis.com/auth/youtube'
 YOUTUBE_API_SERVICE_NAME = 'youtube'
@@ -144,7 +145,7 @@ def get_playlist_items(uploads_list_id)
   return video_ids
 end
 
-def playlist_insert(play_list_id, video_id)
+def playlist_insert(play_list_id, video_id, note)
   client, youtube = get_authenticated_service
 
     body = {
@@ -154,6 +155,9 @@ def playlist_insert(play_list_id, video_id)
           :kind => 'youtube#video',
           :videoId => video_id
         }
+      },
+      :contentDetails => {
+      	:note => note
       }
     }
 
@@ -162,7 +166,7 @@ def playlist_insert(play_list_id, video_id)
           :api_method => youtube.playlist_items.insert,
           :body_object => body,
           :parameters => {
-            :part => 'snippet'
+            :part => 'snippet,contentDetails'
           }
         )
   rescue Google::APIClient::TransmissionError => e
@@ -171,33 +175,43 @@ def playlist_insert(play_list_id, video_id)
 
 end
 
-def get_reddit_links(sub_reddits)
+
+def get_reddit_feed(sub_reddits)
   url = "https://www.reddit.com/r/#{sub_reddits.join('+')}.json?limit=100"
-  links = []
-  video_ids = []
   json = ""
   begin
     open(url) do |feed|
       json << feed.read
     end
     parsed = JSON.parse(json)
-    parsed['data']['children'].each do |item|
-      if item['data']['domain'] =~ /(youtube\.com|youtu\.be)/
-        links.push(item['data']['url'])
-      end
-    end
+    return parsed    
   rescue OpenURI::HTTPError => e
     puts e.inspect
+    exit 1
   end
+end
 
-  links.each do |link|
-    uri = URI.parse(link)
-    if uri.host == "youtu.be"
-      video_ids.push(uri.path[1..-1])
-    else
-      if uri.query
-        vid_id = uri.query.sub(/.*v=([a-zA-Z0-9\-\_]+).*/, '\1')
-        video_ids.push(vid_id)
+
+def get_reddit_links(sub_reddits)
+
+  video_ids = []
+
+  reddit_feed = get_reddit_feed(sub_reddits)
+  
+  reddit_feed['data']['children'].each do |item|  	
+    if item['data']['domain'] =~ /(youtube\.com|youtu\.be)/
+      #links.push(item['data']['url'])
+      uri = URI.parse(item['data']['url'])
+      if uri.host == "youtu.be"
+        vid_id = uri.path[1..-1]
+        item['data']['video_id'] = vid_id
+        video_ids.push(item['data'])
+      else
+        if uri.query
+          vid_id = uri.query.sub(/.*v=([a-zA-Z0-9\-\_]+).*/, '\1')
+          item['data']['video_id'] = vid_id
+          video_ids.push(item['data'])
+        end
       end
     end
   end
@@ -245,18 +259,25 @@ def get_current_pl
 
 end
 
+puts "Getting feed from reddit"
 reddit_video_ids = get_reddit_links(['videos'])
 #reddit_video_ids.push(get_reddit_links(['funny']))
-reddit_video_ids = reddit_video_ids.uniq
 
+# Remove duplicates
+puts "Removing duplicate videos from list"
+reddit_video_ids.uniq { |v| v['video_id'] }
+
+puts "Getting current playlist id"
 playlist=get_current_pl()
+puts "Playlist id = #{playlist}"
 
 playlist_video_ids = get_playlist_items(playlist)
 
-reddit_video_ids.each do |video_id|
-  unless playlist_video_ids.include?(video_id)
-    puts "Adding: #{video_id}"
-    playlist_insert(playlist, video_id)
+reddit_video_ids.each do |item|
+  unless playlist_video_ids.include?(item['video_id'])
+    puts "Adding: #{item['video_id']}"
+    note = "#{item['title']}\nhttps://reddit.com#{item['permalink']}"
+    playlist_insert(playlist, item['video_id'], note)
   end
 end
 
