@@ -26,7 +26,7 @@ def get_authenticated_service
 
   client_id = Google::Auth::ClientId.from_file(File.dirname($PROGRAM_NAME) + '/client_secrets.json')
   token_store = Google::Auth::Stores::FileTokenStore.new(
-    :file => File.dirname($PROGRAM_NAME) + "#{$PROGRAM_NAME}-oauth2.yaml")
+    :file => "#{$PROGRAM_NAME}-oauth2.yaml")
   authorizer = Google::Auth::UserAuthorizer.new(client_id, YOUTUBE_SCOPE, token_store)
 
   user_id = client_id.id
