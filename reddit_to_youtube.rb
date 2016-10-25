@@ -7,11 +7,12 @@ gem 'googleauth', '~> 0.5'
 require 'googleauth'
 require 'googleauth/stores/file_token_store'
 
+gem 'rack', '> 1.6'
+require 'rack/utils'
+
 require 'json'
 require 'open-uri'
-require 'rack/utils'
 require 'pp'
-
 
 YOUTUBE_SCOPE = 'https://www.googleapis.com/auth/youtube'
 YOUTUBE_API_SERVICE_NAME = 'youtube'
@@ -23,9 +24,9 @@ def get_authenticated_service
 
   youtube = Google::Apis::YoutubeV3::YouTubeService.new
 
-  client_id = Google::Auth::ClientId.from_file('client_secrets.json')
+  client_id = Google::Auth::ClientId.from_file(File.dirname($PROGRAM_NAME) + '/client_secrets.json')
   token_store = Google::Auth::Stores::FileTokenStore.new(
-    :file => "#{$PROGRAM_NAME}-oauth2.yaml")
+    :file => File.dirname($PROGRAM_NAME) + "#{$PROGRAM_NAME}-oauth2.yaml")
   authorizer = Google::Auth::UserAuthorizer.new(client_id, YOUTUBE_SCOPE, token_store)
 
   user_id = client_id.id
