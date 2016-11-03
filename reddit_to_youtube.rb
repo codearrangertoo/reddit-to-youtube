@@ -80,12 +80,12 @@ class RedditToYoutube
     playlists = []
 
     begin
-        # Retrieve the list of videos uploaded to the authenticated user's channel.
+        # Retrieve the playlists from the user's channel.
         next_page_token = ''
         until next_page_token.nil?
           playlists_response = @youtube.list_playlists('snippet', :page_token => next_page_token, :mine => true, :max_results => 50)
 
-          ## Print information about each video.
+          ## Read information about each playlist.
           playlists_response.items.each do |playlist|
             data = {}
             data['title'] = playlist.snippet.title
@@ -109,12 +109,12 @@ class RedditToYoutube
     video_ids = []
 
     begin
-        # Retrieve the list of videos uploaded to the authenticated user's channel.
+        # Retrieve the playlist items from the playlist_id.
         next_page_token = ''
         until next_page_token.nil?
           playlistitems_response = @youtube.list_playlist_items('snippet', :playlist_id => uploads_list_id, :max_results => 50, :page_token => next_page_token)
 
-          # Print information about each video.
+          # Read information about each playlist item.
           playlistitems_response.items.each do |playlist_item|
             title = playlist_item.snippet.title
             video_id = playlist_item.snippet.resource_id.video_id
