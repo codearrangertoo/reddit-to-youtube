@@ -181,7 +181,7 @@ class Reddit
       if e.io.status.first.to_i == 429
         puts "Reddit says \"#{e.io.status.last}\". Sleeping for 5 seconds and trying again."
         sleep 5
-        return get_reddit_feed(sub_reddits)
+        return get_feed(sub_reddits)
       else
         pp e.io
         exit 1
