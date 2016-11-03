@@ -46,28 +46,6 @@ class RedditToYoutube
 
   end
 
-  def get_video_data(video_ids)
-
-    begin
-      next_page_token = ''
-      until next_page_token.nil?
-        videos_list_response = @youtube.list_videos('snippet', :id => video_ids.join(","), :page_token => next_page_token)
-
-        videos_list_response.items.each do |video_item|
-          pp video_item
-          #title = playlist_item['snippet']['title']
-          #video_id = playlist_item['snippet']['resourceId']['videoId']
-        end
-
-        next_page_token = videos_list_response.next_page_token
-
-      end
-    rescue Google::Apis::ClientError => e
-      pp e
-    end
-
-  end
-
   def get_playlists()
 
     playlists = []
@@ -272,5 +250,3 @@ reddit_video_ids.each do |item|
     rty.playlist_insert(playlist, item['video_id'], note)
   end
 end
-
-#reddit_video_data = rty.get_video_data(reddit_video_ids)
