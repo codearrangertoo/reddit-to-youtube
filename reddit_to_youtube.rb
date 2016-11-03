@@ -15,7 +15,7 @@ require 'open-uri'
 require 'pp'
 
 
-class RedditToYoutube
+class Youtube
 
   YOUTUBE_SCOPE = 'https://www.googleapis.com/auth/youtube'
   YOUTUBE_API_SERVICE_NAME = 'youtube'
@@ -128,64 +128,6 @@ class RedditToYoutube
 
   end
 
-
-  def get_reddit_feed(sub_reddits)
-    url = "https://www.reddit.com/r/#{sub_reddits.join('+')}.json?limit=100"
-    json = ""
-    begin
-      open(url) do |feed|
-        json << feed.read
-      end
-      parsed = JSON.parse(json)
-      return parsed
-    rescue OpenURI::HTTPError => e
-      if e.io.status.first.to_i == 429
-        puts "Reddit says \"#{e.io.status.last}\". Sleeping for 5 seconds and trying again."
-        sleep 5
-        return get_reddit_feed(sub_reddits)
-      else
-        pp e.io
-        exit 1
-      end
-    end
-  end
-
-
-  def get_reddit_links(sub_reddits)
-
-    video_ids = []
-
-    reddit_feed = get_reddit_feed(sub_reddits)
-
-    reddit_feed['data']['children'].each do |item|
-      if item['data']['domain'] =~ /(youtube\.com|youtu\.be)/
-        #links.push(item['data']['url'])
-        uri = URI.parse(item['data']['url'])
-        if uri.host == 'youtu.be'
-          vid_id = uri.path[1..-1]
-          item['data']['video_id'] = vid_id
-          video_ids.push(item['data'])
-        else
-          if uri.query
-            rack_parse = Rack::Utils.parse_query(uri.query)
-            if rack_parse.has_key?('v')
-              vid_id = rack_parse['v']
-            else
-              if uri.path =~ /attribution_link/ && rack_parse.has_key?('u')
-                new_uri = URI.parse(uri.scheme + '//' + uri.host + rack_parse['u'])
-                sub_rack_parse = Rack::Utils.parse_query(new_uri.query)
-                vid_id = sub_rack_parse['v'] if sub_rack_parse.has_key?('v')
-              end
-            end
-            item['data']['video_id'] = vid_id
-            video_ids.push(item['data'])
-          end
-        end
-      end
-    end
-    return video_ids
-  end
-
   def new_playlist(title)
 
       body = {
@@ -224,22 +166,82 @@ class RedditToYoutube
 
 end
 
+class Reddit
 
-rty=RedditToYoutube.new
+  def get_feed(sub_reddits)
+    url = "https://www.reddit.com/r/#{sub_reddits.join('+')}.json?limit=100"
+    json = ""
+    begin
+      open(url) do |feed|
+        json << feed.read
+      end
+      parsed = JSON.parse(json)
+      return parsed
+    rescue OpenURI::HTTPError => e
+      if e.io.status.first.to_i == 429
+        puts "Reddit says \"#{e.io.status.last}\". Sleeping for 5 seconds and trying again."
+        sleep 5
+        return get_reddit_feed(sub_reddits)
+      else
+        pp e.io
+        exit 1
+      end
+    end
+  end
+
+  def get_links(sub_reddits)
+
+    video_ids = []
+
+    reddit_feed = get_feed(sub_reddits)
+
+    reddit_feed['data']['children'].each do |item|
+      if item['data']['domain'] =~ /(youtube\.com|youtu\.be)/
+        #links.push(item['data']['url'])
+        uri = URI.parse(item['data']['url'])
+        if uri.host == 'youtu.be'
+          vid_id = uri.path[1..-1]
+          item['data']['video_id'] = vid_id
+          video_ids.push(item['data'])
+        else
+          if uri.query
+            rack_parse = Rack::Utils.parse_query(uri.query)
+            if rack_parse.has_key?('v')
+              vid_id = rack_parse['v']
+            else
+              if uri.path =~ /attribution_link/ && rack_parse.has_key?('u')
+                new_uri = URI.parse(uri.scheme + '//' + uri.host + rack_parse['u'])
+                sub_rack_parse = Rack::Utils.parse_query(new_uri.query)
+                vid_id = sub_rack_parse['v'] if sub_rack_parse.has_key?('v')
+              end
+            end
+            item['data']['video_id'] = vid_id
+            video_ids.push(item['data'])
+          end
+        end
+      end
+    end
+    return video_ids
+  end
+    
+end
+
+youtube=Youtube.new
+reddit=Reddit.new
 
 puts "Getting feed from reddit"
-reddit_video_ids = rty.get_reddit_links(['videos'])
-#reddit_video_ids.push(rty.get_reddit_links(['funny']))
+reddit_video_ids = reddit.get_links(['videos'])
+#reddit_video_ids.push(reddit.get_links(['funny']))
 
 # Remove duplicates
 puts "Removing duplicate videos from list"
 reddit_video_ids.uniq { |v| v['video_id'] }
 
 puts "Getting current playlist id"
-playlist=rty.get_current_pl()
+playlist=youtube.get_current_pl()
 puts "Playlist id = #{playlist}"
 
-playlist_video_ids = rty.get_playlist_items(playlist)
+playlist_video_ids = youtube.get_playlist_items(playlist)
 
 reddit_video_ids.each do |item|
   unless playlist_video_ids.include?(item['video_id'])
@@ -247,6 +249,6 @@ reddit_video_ids.each do |item|
     note = "#{item['title']}\nhttps://reddit.com#{item['permalink']}"
     # Make sure the note isn't more than 280 characters
     note = "https://reddit.com#{item['permalink']}" if note.length > 280
-    rty.playlist_insert(playlist, item['video_id'], note)
+    youtube.playlist_insert(playlist, item['video_id'], note)
   end
 end
