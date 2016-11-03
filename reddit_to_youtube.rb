@@ -56,17 +56,17 @@ class RedditToYoutube
   def get_video_data(video_ids)
 
     begin
-        next_page_token = ''
-        until next_page_token.nil?
-          videos_list_response = @youtube.list_videos('snippet', :id => video_ids.join(","), :page_token => next_page_token)
+      next_page_token = ''
+      until next_page_token.nil?
+        videos_list_response = @youtube.list_videos('snippet', :id => video_ids.join(","), :page_token => next_page_token)
 
-          videos_list_response.items.each do |video_item|
-            pp video_item
-            #title = playlist_item['snippet']['title']
-            #video_id = playlist_item['snippet']['resourceId']['videoId']
-          end
+        videos_list_response.items.each do |video_item|
+          pp video_item
+          #title = playlist_item['snippet']['title']
+          #video_id = playlist_item['snippet']['resourceId']['videoId']
+        end
 
-          next_page_token = videos_list_response.next_page_token
+        next_page_token = videos_list_response.next_page_token
 
       end
     rescue Google::Apis::ClientError => e
@@ -231,8 +231,8 @@ class RedditToYoutube
       new_playlist = Google::Apis::YoutubeV3::Playlist.new(body)
 
     begin
-          playlistsinsert_response = @youtube.insert_playlist('snippet,status', new_playlist)
-          return playlistsinsert_response.id
+      playlistsinsert_response = @youtube.insert_playlist('snippet,status', new_playlist)
+      return playlistsinsert_response.id
     rescue Google::Apis::ClientError => e
       pp e
     end
