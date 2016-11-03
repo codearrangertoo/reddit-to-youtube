@@ -23,13 +23,8 @@ class RedditToYoutube
   OOB_URI = 'urn:ietf:wg:oauth:2.0:oob'
 
   def initialize
-    @youtube = get_authenticated_service
-  end
 
-
-  def get_authenticated_service
-
-    youtube = Google::Apis::YoutubeV3::YouTubeService.new
+    @youtube = Google::Apis::YoutubeV3::YouTubeService.new
 
     client_id = Google::Auth::ClientId.from_file(File.dirname($PROGRAM_NAME) + '/client_secrets.json')
     token_store = Google::Auth::Stores::FileTokenStore.new(
@@ -47,9 +42,7 @@ class RedditToYoutube
         user_id: user_id, code: code, base_url: OOB_URI)
     end
 
-    youtube.authorization = credentials
-
-    return youtube
+    @youtube.authorization = credentials
 
   end
 
@@ -147,6 +140,7 @@ class RedditToYoutube
       }
 
       item = Google::Apis::YoutubeV3::PlaylistItem.new(body)
+      #pp item
 
     begin
       playlistitems_response = @youtube.insert_playlist_item('snippet,contentDetails', item)
@@ -273,6 +267,8 @@ reddit_video_ids.each do |item|
   unless playlist_video_ids.include?(item['video_id'])
     puts "Adding: #{item['video_id']}"
     note = "#{item['title']}\nhttps://reddit.com#{item['permalink']}"
+    # Make sure the note isn't more than 280 characters
+    note = "https://reddit.com#{item['permalink']}" if note.length > 280
     rty.playlist_insert(playlist, item['video_id'], note)
   end
 end
