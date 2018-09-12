@@ -1,2 +1,5 @@
-/*.json
-/*.yaml
+*.json
+*.yaml
+.bundle
+Gemfile.lock
+
