@@ -7,10 +7,8 @@ RUN apt-get install -y gem bundler watch
 
 RUN mkdir -p /opt/reddit-to-youtube
 
-COPY reddit_to_youtube.rb /opt/reddit-to-youtube/
-COPY Gemfile /opt/reddit-to-youtube/
-COPY client_secrets.json /opt/reddit-to-youtube/
-COPY reddit_to_youtube.rb-oauth2.yaml /opt/reddit-to-youtube/
+COPY reddit_to_youtube.rb Gemfile /opt/reddit-to-youtube/
+COPY client_secrets.json reddit_to_youtube.rb-oauth2.yaml /opt/reddit-to-youtube/
 
 WORKDIR /opt/reddit-to-youtube
 
