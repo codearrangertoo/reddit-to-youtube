@@ -231,7 +231,7 @@ end
 youtube=Youtube.new
 reddit=Reddit.new
 
-subreddits=['videos', 'funny']
+subreddits=['videos', 'funny', 'AnimalsBeingBros']
 
 subreddits.each do |subreddit|
   puts "Getting feed from reddit.com/r/#{subreddit}"
