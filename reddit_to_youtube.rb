@@ -154,9 +154,10 @@ class Youtube
 
   end
 
-  def get_current_pl
+  def get_current_pl(subreddit='videos')
     date=DateTime.now.strftime('%Y-%m-%d')
-    playlist_title="/r/videos@#{date}"
+    playlist_title="/r/#{subreddit}@#{date}"
+    puts "playlist_title=#{playlist_title}"
     if pl=get_playlists.find {|p| p['title'] == playlist_title }
       return pl['id']
     else
@@ -230,26 +231,30 @@ end
 youtube=Youtube.new
 reddit=Reddit.new
 
-puts "Getting feed from reddit"
-reddit_video_ids = reddit.get_links(['videos'])
-#reddit_video_ids.push(reddit.get_links(['funny']))
+subreddits=['videos', 'funny']
 
-# Remove duplicates
-puts "Removing duplicate videos from list"
-reddit_video_ids.uniq { |v| v['video_id'] }
+subreddits.each do |subreddit|
+  puts "Getting feed from reddit.com/r/#{subreddit}"
+  reddit_video_ids = reddit.get_links([subreddit])
+  #reddit_video_ids.push(reddit.get_links(['funny']))
 
-puts "Getting current playlist id"
-playlist=youtube.get_current_pl()
-puts "Playlist id = #{playlist}"
+  # Remove duplicates
+  puts "Removing duplicate videos from list"
+  reddit_video_ids.uniq { |v| v['video_id'] }
 
-playlist_video_ids = youtube.get_playlist_items(playlist)
+  puts "Getting current playlist id"
+  playlist=youtube.get_current_pl(subreddit)
+  puts "Playlist id = #{playlist}"
 
-reddit_video_ids.each do |item|
-  unless playlist_video_ids.include?(item['video_id'])
-    puts "Adding: #{item['video_id']}"
-    note = "#{item['title']}\nhttps://reddit.com#{item['permalink']}"
-    # Make sure the note isn't more than 280 characters
-    note = "https://reddit.com#{item['permalink']}" if note.length > 280
-    youtube.playlist_insert(playlist, item['video_id'], note)
+  playlist_video_ids = youtube.get_playlist_items(playlist)
+
+  reddit_video_ids.each do |item|
+    unless playlist_video_ids.include?(item['video_id'])
+      puts "Adding: #{item['video_id']}"
+      note = "#{item['title']}\nhttps://reddit.com#{item['permalink']}"
+      # Make sure the note isn't more than 280 characters
+      note = "https://reddit.com#{item['permalink']}" if note.length > 280
+      youtube.playlist_insert(playlist, item['video_id'], note)
+    end
   end
 end
