@@ -193,14 +193,14 @@ class Reddit
 
   def get_subreddits()
     subreddits = []
-    search({ :q => 'site:youtube.com OR site:youtu.be', :t => 'day' })['data']['children'].each do |item|
+    search({ :q => 'site:youtube.com OR site:youtu.be', :t => 'day', :sort => 'new', :limit => 100 })['data']['children'].each do |item|
       subreddits.push(item['data']['subreddit'])
     end
     return subreddits.uniq
   end
 
 
-  def search( params = { :q => 'site:youtube.com OR site:youtu.be', :t => 'day' })
+  def search( params = { :q => 'site:youtube.com OR site:youtu.be', :t => 'day', :sort => 'new', :limit => 100 })
     uri = URI.parse('https://www.reddit.com/search.json')
     uri.query = URI.encode_www_form(params)
     json = ""
@@ -273,6 +273,9 @@ subreddits.each do |subreddit|
   # Remove duplicates
   puts "Removing duplicate videos from list"
   reddit_video_ids.uniq { |v| v['video_id'] }
+
+  #skip this subreddit if we find less than 10 videos
+  next if reddit_video_ids.count < 10
 
   puts "Getting current playlist id"
   playlist=youtube.get_current_pl(subreddit)
