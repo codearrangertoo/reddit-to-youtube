@@ -191,6 +191,37 @@ class Reddit
     end
   end
 
+  def get_subreddits()
+    subreddits = []
+    search({ :q => 'site:youtube.com OR site:youtu.be', :t => 'day' })['data']['children'].each do |item|
+      subreddits.push(item['data']['subreddit'])
+    end
+    return subreddits.uniq
+  end
+
+
+  def search( params = { :q => 'site:youtube.com OR site:youtu.be', :t => 'day' })
+    uri = URI.parse('https://www.reddit.com/search.json')
+    uri.query = URI.encode_www_form(params)
+    json = ""
+    begin
+      open(uri) do |feed|
+        json << feed.read
+      end
+      parsed = JSON.parse(json)
+      return parsed
+    rescue OpenURI::HTTPError => e
+      if e.io.status.first.to_i == 429
+        puts "Reddit says \"#{e.io.status.last}\". Sleeping for 5 seconds and trying again."
+        sleep 5
+        return search(params)
+      else
+        pp e.io
+        exit 1
+      end
+    end
+  end
+
   def get_links(sub_reddits)
 
     video_ids = []
@@ -231,7 +262,8 @@ end
 youtube=Youtube.new
 reddit=Reddit.new
 
-subreddits=['videos', 'funny', 'AnimalsBeingBros']
+subreddits=reddit.get_subreddits
+subreddits.push('videos', 'funny', 'AnimalsBeingBros').uniq
 
 subreddits.each do |subreddit|
   puts "Getting feed from reddit.com/r/#{subreddit}"
