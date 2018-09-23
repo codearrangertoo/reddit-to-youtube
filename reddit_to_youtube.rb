@@ -264,7 +264,7 @@ youtube=Youtube.new
 reddit=Reddit.new
 
 subreddits=reddit.get_subreddits
-subreddits.push('videos', 'funny', 'AnimalsBeingBros').uniq
+subreddits.insert(1, 'videos', 'funny', 'AnimalsBeingBros').uniq
 
 subreddits.each do |subreddit|
   puts "Getting feed from reddit.com/r/#{subreddit}"
@@ -275,8 +275,8 @@ subreddits.each do |subreddit|
   puts "Removing duplicate videos from list"
   reddit_video_ids.uniq { |v| v['video_id'] }
 
-  #skip this subreddit if we find less than 10 videos
-  next if reddit_video_ids.count < 10
+  #skip this subreddit if we find less than 30 videos
+  next if reddit_video_ids.count < 30
 
   puts "Getting current playlist id"
   playlist=youtube.get_current_pl(subreddit)
