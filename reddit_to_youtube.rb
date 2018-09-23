@@ -230,7 +230,8 @@ class Reddit
 
     reddit_feed['data']['children'].each do |item|
       if item['data']['domain'] =~ /(youtube\.com|youtu\.be)/
-        #links.push(item['data']['url'])
+        #clean up stupid stuff like this: http://youtu.be/UAFxXLItVQ4#####
+        item['data']['url']=item['data']['url'].match(/^([^#]*)/i).captures.first
         uri = URI.parse(item['data']['url'])
         if uri.host == 'youtu.be'
           vid_id = uri.path[1..-1]
