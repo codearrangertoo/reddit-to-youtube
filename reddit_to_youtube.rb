@@ -263,7 +263,8 @@ end
 youtube=Youtube.new
 reddit=Reddit.new
 
-subreddits=reddit.get_subreddits
+#subreddits=reddit.get_subreddits
+subreddits=Array.new
 subreddits.insert(1, 'videos', 'funny', 'AnimalsBeingBros').uniq
 
 subreddits.each do |subreddit|
