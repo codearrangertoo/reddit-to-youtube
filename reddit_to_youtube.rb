@@ -277,7 +277,7 @@ subreddits.each do |subreddit|
   reddit_video_ids.uniq { |v| v['video_id'] }
 
   #skip this subreddit if we find less than 30 videos
-  next if reddit_video_ids.count < 30
+  #next if reddit_video_ids.count < 30
 
   puts "Getting current playlist id"
   playlist=youtube.get_current_pl(subreddit)
