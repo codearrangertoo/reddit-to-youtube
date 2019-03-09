@@ -265,7 +265,8 @@ reddit=Reddit.new
 
 #subreddits=reddit.get_subreddits
 subreddits=Array.new
-subreddits.insert(1, 'videos', 'funny', 'AnimalsBeingBros').uniq
+subreddits.push('videos', 'funny', 'AnimalsBeingBros')
+subreddits=subreddits.uniq
 
 subreddits.each do |subreddit|
   puts "Getting feed from reddit.com/r/#{subreddit}"
