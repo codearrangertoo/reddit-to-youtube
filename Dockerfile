@@ -20,3 +20,4 @@ ENV TZ="America/Los_Angeles"
 
 #Start the script
 CMD ["/opt/reddit-to-youtube/reddit_to_youtube.rb"]
+
